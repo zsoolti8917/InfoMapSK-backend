@@ -3,6 +3,9 @@ import cors from 'cors';
 import fetch from 'node-fetch';
 import { spawn } from 'child_process';
 import morgan from 'morgan';
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+dotenv.config()
 
 const app = express();
 const port = 5500;
@@ -11,6 +14,44 @@ const port = 5500;
 app.use(morgan('dev')); // Logging
 app.use(express.json()); // Parsing JSON bodies
 app.use(cors()); // Enabling CORS
+
+
+const transporter = nodemailer.createTransport({
+    host: 'smtp.zoho.eu',
+    port: 465,
+    secure: true, // use SSL
+    auth: {
+        user: process.env.ZOHO_USER,
+        pass: process.env.ZOHO_PASS
+    },
+  });
+  app.post('/send-email', (req, res) => {
+    const { name, email, nazovFirmy, titul, message } = req.body;
+  
+    // Setup email data
+    const mailOptions = {
+      from: "web.support@infomap.sk", // Sender address
+      to: "podpora@infomap.sk", // Replace with your email address
+      subject: `New message from ${name}`, // Subject line
+      text: `
+        Name: ${name}
+        Email: ${email}
+        Company Name: ${nazovFirmy || 'Not Provided'}
+        Title: ${titul || 'Not Provided'}
+        Message: ${message}
+      `, // Plain text body
+    };
+  
+    // Send the email
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+        return res.status(500).send('Error sending email.');
+      }
+      console.log('Email sent:', info.response);
+      res.status(200).send('Email sent successfully.');
+    });
+  });
 
 // Fetch dimension details
 app.get('/dimension-details', async (req, res) => {
