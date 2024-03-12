@@ -5,6 +5,10 @@ import { spawn } from 'child_process';
 import morgan from 'morgan';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import path from 'path';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+import fs from 'fs';
 dotenv.config()
 
 const app = express();
@@ -104,6 +108,45 @@ app.post('/process-data', (req, res) => {
     });
 });
 
+app.get('/get-slovakia-geojson', (req, res) => {
+    fs.readFile(path.join(__dirname, './geojson/slovakia_corrected.geojson'), 'utf8', (err, data) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Error reading Slovakia GeoJSON file');
+      }
+      res.json(JSON.parse(data));
+    });
+  });
+
+  app.get('/get-regions-geojson', (req, res) => {
+    fs.readFile(path.join(__dirname, './geojson/corrected_regions.geojson'), 'utf8', (err, data) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Error reading tegions GeoJSON file');
+      }
+      res.json(JSON.parse(data));
+    });
+  });
+
+  app.get('/get-districts-geojson', (req, res) => {
+    fs.readFile(path.join(__dirname, './geojson/corrected_districts.geojson'), 'utf8', (err, data) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Error reading districts GeoJSON file');
+      }
+      res.json(JSON.parse(data));
+    });
+  });
+
+  app.get('/get-cities-geojson', (req, res) => {
+    fs.readFile(path.join(__dirname, './geojson/corrected_cities.geojson'), 'utf8', (err, data) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Error reading Cities GeoJSON file');
+      }
+      res.json(JSON.parse(data));
+    });
+  });
 // Start the server
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
