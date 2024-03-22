@@ -12,15 +12,38 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import fs from 'fs';
 dotenv.config()
 import { promises as fs1 } from 'fs';
-
+import {Schema} from 'mongoose'
+import mongoose from 'mongoose'
 const app = express();
 const port = 5500;
-
+import datasetCitiesConfig from './datasetsCitiesConfig.json' assert { type: "json" };
+import datasetDistrictsConfig from './datasetsDistrictsConfig.json' assert { type: "json" };
+import datasetRegionsConfig from './datasetsRegionsConfig.json' assert { type: "json" };
+import datasetSlovakiaConfig from './datasetsSlovakiaConfig.json' assert { type: "json" };
 // Middleware
 app.use(morgan('dev')); // Logging
 app.use(express.json()); // Parsing JSON bodies
 app.use(cors()); // Enabling CORS
 
+mongoose.connect('mongodb://localhost:27017/InfoMapSK', { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('Successfully connected to MongoDB.'))
+  .catch(err => console.error('Connection error', err));
+
+  const jsonStatSchema = new Schema({
+    nutsCode: String, // To store the NUTS code associated with the dataset
+    label: String, // The label of the dataset for easy identification
+    update: Date, // The last update date of the dataset
+    data: Schema.Types.Mixed, // The actual JSON-stat data
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
+    lastUpdated: {
+      type: Date,
+      default: Date.now
+    }
+  });
+  const JsonStat = mongoose.model('JsonStat', jsonStatSchema);
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.zoho.eu',
@@ -151,215 +174,39 @@ app.get('/get-slovakia-geojson', (req, res) => {
   });
 
 // Define the mapping of index to NUTS codes
-const indexToNuts13 = {
-  "0": "SK0",
-  "1": "SK01",
-  "2": "SK010",
-  "3": "SK02",
-  "4": "SK021",
-  "5": "SK022",
-  "6": "SK023",
-  "7": "SK03",
-  "8": "SK031",
-  "9": "SK032",
-  "10": "SK04",
-  "11": "SK041",
-  "12": "SK042"
-};
 
-app.get('/api/regions/:index', async (req, res) => {
-  const { index } = req.params; // This 'index' is now the provided index for NUTS code
+app.get('/api/slovakia/:index/:activeTab', async (req, res) => {
+  const { activeTab, index } = req.params;
+  const nutsCode = 'SK0'; // The NUTS code for Slovakia
 
-  // Use the index to get the corresponding NUTS code
-  const nutsCode = indexToNuts13[index];
-  if (!nutsCode) {
-    return res.status(400).send('Invalid index provided');
+
+  // Check if the activeTab exists in datasetRegionsConfig
+  if (!datasetRegionsConfig[activeTab]) {
+    return res.status(404).send('Category not found');
   }
 
+  // Fetch all datasets for the activeTab category
+  const datasets = datasetRegionsConfig[activeTab];
   try {
-    const collectionResponse = await axios.get('https://data.statistics.sk/api/v2/collection?lang=en');
-    const datasets = collectionResponse.data.link.item;
+    const responses = await Promise.all(datasets.map(dataset => {
+      const url = dataset.url.replace('${nutsCode}', nutsCode);
+      return axios.get(url).then(response => ({ id: dataset.id, data: response.data, nutsCode: "SK0" }));
+    }));
 
-    const filteredDatasets = datasets.filter(dataset => dataset.dimension.hasOwnProperty('nuts13'));
-
-    const transformedUrls = filteredDatasets.map(dataset => {
-      const urlParts = dataset.href.split('/');
-      const nutsIndex = urlParts.indexOf('nuts13');
-
-      // Replace 'nuts15' with the actual nutsCode
-      if (nutsIndex > -1) {
-        urlParts[nutsIndex] = nutsCode; 
-        // Set all subsequent parts to 'all', including the last dimension
-        for (let i = nutsIndex + 1; i < urlParts.length; i++) {
-          if(urlParts[i].includes('?')){ // Check if the part includes query parameters
-            let queryParamsIndex = urlParts[i].indexOf('?');
-            urlParts[i] = 'all' + urlParts[i].slice(queryParamsIndex); // Preserve query parameters
-          }else{
-            urlParts[i] = 'all';
-          }
-        }
-      }
-      
-      const newUrl = urlParts.join('/');
-
-      return newUrl;
-    });
-
-    // Return the transformed URLs
-    res.json({ urls: transformedUrls });
+    // Send the fetched data back to the frontend
+    res.json(responses);
   } catch (error) {
-    console.error('Error processing datasets:', error);
-    res.status(500).send('Internal server error');
+    console.error('Error fetching data from external API:', error);
+    return res.status(500).send('Error fetching data');
   }
 });
 
-const indexToNuts14Code = {
-  "0": "SK_CAP",
-  "1": "SK0",
-  "2": "SK01",
-  "3": "SK010",
-  "4": "SK0101",
-  "5": "SK0102",
-  "6": "SK0103",
-  "7": "SK0104",
-  "8": "SK0105",
-  "9": "SK0106",
-  "10": "SK0107",
-  "11": "SK0108",
-  "12": "SK02",
-  "13": "SK021",
-  "14": "SK0211",
-  "15": "SK0212",
-  "16": "SK0213",
-  "17": "SK0214",
-  "18": "SK0215",
-  "19": "SK0216",
-  "20": "SK0217",
-  "21": "SK022",
-  "22": "SK0221",
-  "23": "SK0222",
-  "24": "SK0223",
-  "25": "SK0224",
-  "26": "SK0225",
-  "27": "SK0226",
-  "28": "SK0227",
-  "29": "SK0228",
-  "30": "SK0229",
-  "31": "SK023",
-  "32": "SK0231",
-  "33": "SK0232",
-  "34": "SK0233",
-  "35": "SK0234",
-  "36": "SK0235",
-  "37": "SK0236",
-  "38": "SK0237",
-  "39": "SK03",
-  "40": "SK031",
-  "41": "SK0311",
-  "42": "SK0312",
-  "43": "SK0313",
-  "44": "SK0314",
-  "45": "SK0315",
-  "46": "SK0316",
-  "47": "SK0317",
-  "48": "SK0318",
-  "49": "SK0319",
-  "50": "SK031A",
-  "51": "SK031B",
-  "52": "SK032",
-  "53": "SK0321",
-  "54": "SK0322",
-  "55": "SK0323",
-  "56": "SK0324",
-  "57": "SK0325",
-  "58": "SK0326",
-  "59": "SK0327",
-  "60": "SK0328",
-  "61": "SK0329",
-  "62": "SK032A",
-  "63": "SK032B",
-  "64": "SK032C",
-  "65": "SK032D",
-  "66": "SK04",
-  "67": "SK041",
-  "68": "SK0411",
-  "69": "SK0412",
-  "70": "SK0413",
-  "71": "SK0414",
-  "72": "SK0415",
-  "73": "SK0416",
-  "74": "SK0417",
-  "75": "SK0418",
-  "76": "SK0419",
-  "77": "SK041A",
-  "78": "SK041B",
-  "79": "SK041C",
-  "80": "SK041D",
-  "81": "SK042",
-  "82": "SK0421",
-  "83": "SK0422",
-  "84": "SK0422_0425",
-  "85": "SK0423",
-  "86": "SK0424",
-  "87": "SK0425",
-  "88": "SK0426",
-  "89": "SK0427",
-  "90": "SK0428",
-  "91": "SK0429",
-  "92": "SK042A",
-  "93": "SK042B"
-};
-
-app.get('/api/districts/:index', async (req, res) => {
-  const { index } = req.params;
-  
-  const nutsCode = indexToNuts14Code[index];
-  if (!nutsCode) {
-    return res.status(400).send('Invalid index provided');
-  }
-
-  try {
-    const collectionResponse = await axios.get('https://data.statistics.sk/api/v2/collection?lang=en');
-    const datasets = collectionResponse.data.link.item;
-
-    const filteredDatasets = datasets.filter(dataset => dataset.dimension.hasOwnProperty('nuts14'));
-
-    const transformedUrls = filteredDatasets.map(dataset => {
-      const urlParts = dataset.href.split('/');
-      const nutsIndex = urlParts.indexOf('nuts14');
-
-      // Replace 'nuts15' with the actual nutsCode
-      if (nutsIndex > -1) {
-        urlParts[nutsIndex] = nutsCode; 
-        // Set all subsequent parts to 'all', including the last dimension
-        for (let i = nutsIndex + 1; i < urlParts.length; i++) {
-          if(urlParts[i].includes('?')){ // Check if the part includes query parameters
-            let queryParamsIndex = urlParts[i].indexOf('?');
-            urlParts[i] = 'all' + urlParts[i].slice(queryParamsIndex); // Preserve query parameters
-          }else{
-            urlParts[i] = 'all';
-          }
-        }
-      }
-      
-      const newUrl = urlParts.join('/');
-
-      return newUrl;
-    });
-
-    res.json({ urls: transformedUrls });
-  } catch (error) {
-    console.error('Error fetching or transforming datasets:', error);
-    res.status(500).send('Internal server error');
-  }
-});
-
-app.get('/api/cities/:index', async (req, res) => {
-  const { index } = req.params;
+app.get('/api/regions/:index/:activeTab', async (req, res) => {
+  const { index, activeTab } = req.params;
 
   let simplifiedMapping;
   try {
-    const mappingData = await fs1.readFile('./mapping-json/inverted_mapping.json', { encoding: 'utf-8' });
+    const mappingData = await fs1.readFile('./mapping-json/regions_mapping.json', { encoding: 'utf-8' });
     simplifiedMapping = JSON.parse(mappingData);
   } catch (error) {
     console.error('Error reading mapping file:', error);
@@ -367,46 +214,113 @@ app.get('/api/cities/:index', async (req, res) => {
   }
 
   const nutsCode = simplifiedMapping[index];
-  console.log('nutsCode:', nutsCode)
   if (!nutsCode) {
     return res.status(400).send('Invalid index provided');
   }
 
+  // Check if the activeTab exists in datasetRegionsConfig
+  if (!datasetRegionsConfig[activeTab]) {
+    return res.status(404).send('Category not found');
+  }
+
+  // Fetch all datasets for the activeTab category
+  const datasets = datasetRegionsConfig[activeTab];
   try {
-    const collectionResponse = await axios.get('https://data.statistics.sk/api/v2/collection?lang=en');
-    const datasets = collectionResponse.data.link.item;
+    const responses = await Promise.all(datasets.map(dataset => {
+      const url = dataset.url.replace('${nutsCode}', nutsCode);
+      return axios.get(url).then(response => ({ id: dataset.id, data: response.data, nutsCode: nutsCode }));
+    }));
 
-    const filteredDatasets = datasets.filter(dataset => dataset.dimension.hasOwnProperty('nuts15'));
-
-    const transformedUrls = filteredDatasets.map(dataset => {
-      const urlParts = dataset.href.split('/');
-      const nutsIndex = urlParts.indexOf('nuts15');
-
-      // Replace 'nuts15' with the actual nutsCode
-      if (nutsIndex > -1) {
-        urlParts[nutsIndex] = nutsCode; 
-        // Set all subsequent parts to 'all', including the last dimension
-        for (let i = nutsIndex + 1; i < urlParts.length; i++) {
-          if(urlParts[i].includes('?')){ // Check if the part includes query parameters
-            let queryParamsIndex = urlParts[i].indexOf('?');
-            urlParts[i] = 'all' + urlParts[i].slice(queryParamsIndex); // Preserve query parameters
-          }else{
-            urlParts[i] = 'all';
-          }
-        }
-      }
-      
-      const newUrl = urlParts.join('/');
-
-      return newUrl;
-    });
-
-    res.json({ urls: transformedUrls });
+    // Send the fetched data back to the frontend
+    res.json(responses);
   } catch (error) {
-    console.error('Error processing datasets:', error);
-    res.status(500).send('Internal server error');
+    console.error('Error fetching data from external API:', error);
+    return res.status(500).send('Error fetching data');
   }
 });
+
+app.get('/api/districts/:index/:activeTab', async (req, res) => {
+  const { index, activeTab } = req.params;
+
+  let simplifiedMapping;
+  try {
+    const mappingData = await fs1.readFile('./mapping-json/districts_mapping.json', { encoding: 'utf-8' });
+    simplifiedMapping = JSON.parse(mappingData);
+  } catch (error) {
+    console.error('Error reading mapping file:', error);
+    return res.status(500).send('Internal server error');
+  }
+
+  const nutsCode = simplifiedMapping[index];
+  if (!nutsCode) {
+    return res.status(400).send('Invalid index provided');
+  }
+
+  // Check if the activeTab exists in datasetDistrictsConfig
+  if (!datasetDistrictsConfig[activeTab]) {
+    return res.status(404).send('Category not found');
+  }
+
+  // Fetch all datasets for the activeTab category
+  const datasets = datasetDistrictsConfig[activeTab];
+  try {
+    const responses = await Promise.all(datasets.map(dataset => {
+      const url = dataset.url.replace('${nutsCode}', nutsCode);
+      return axios.get(url).then(response => ({ id: dataset.id, data: response.data, nutsCode: nutsCode }));
+    }));
+
+    // Send the fetched data back to the frontend
+    res.json(responses);
+  } catch (error) {
+    console.error('Error fetching data from external API:', error);
+    return res.status(500).send('Error fetching data');
+  }
+});
+
+
+
+app.get('/api/cities/:index/:activeTab', async (req, res) => {
+  const { index, activeTab } = req.params;
+
+  let simplifiedMapping;
+  try {
+    const mappingData = await fs1.readFile('./mapping-json/cities_mapping.json', { encoding: 'utf-8' });
+    simplifiedMapping = JSON.parse(mappingData);
+  } catch (error) {
+    console.error('Error reading mapping file:', error);
+    return res.status(500).send('Internal server error');
+  }
+
+  const nutsCode = simplifiedMapping[index];
+  if (!nutsCode) {
+    return res.status(400).send('Invalid index provided');
+  }
+
+  // Check if the activeTab exists in datasetCitiesConfig
+  if (!datasetCitiesConfig[activeTab]) {
+    return res.status(404).send('Category not found');
+  }
+
+  // Fetch all datasets for the activeTab category
+  const datasets = datasetCitiesConfig[activeTab];
+  try {
+    const responses = await Promise.all(datasets.map(dataset => {
+      const url = dataset.url.replace('${nutsCode}', nutsCode);
+      return axios.get(url).then(response => ({ id: dataset.id, data: response.data, nutsCode: nutsCode }));
+    }));
+
+    // Send the fetched data back to the frontend
+    res.json(responses);
+  } catch (error) {
+    console.error('Error fetching data from external API:', error);
+    return res.status(500).send('Error fetching data');
+  }
+});
+
+
+
+
+
 // Start the server
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
