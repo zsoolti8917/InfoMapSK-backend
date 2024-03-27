@@ -1,0 +1,80 @@
+{
+    "obyvatelstvo":[
+        {
+            "id": "obyvatelstvoTabulka1",
+            "url": "https://data.statistics.sk/api/v2/dataset/om7012rr/${nutsCode}/all/IN010053/all?lang=sk&type=json",
+            "nutsCode": "nuts"
+        },
+        {
+            "id": "obyvatelstvoTabulka2",
+            "url": "https://data.statistics.sk/api/v2/dataset/om7012rr/${nutsCode}/all/IN010076,IN010078,IN010079,IN010080,IN010082/SPOLU?lang=sk&type=json",
+            "nutsCode": "nuts"
+        },
+        {
+            "id": "obyvatelstvoTabulka3",
+            "url": "https://data.statistics.sk/api/v2/dataset/om7011rr/${nutsCode}/all/IN010061,IN010106?lang=sk&type=json",
+            "nutsCode": "nuts"
+        },
+        {
+            "id": "obyvatelstvoTabulka4",
+            "url": "https://data.statistics.sk/api/v2/dataset/om7011rr/${nutsCode}/all/IN010071,IN010073?lang=sk&type=json",
+            "nutsCode": "nuts"
+        }
+    ],
+    "ekonomickaAktivita":[
+        {
+            "id": "ekonomikaTabulka1",
+            "url": "https://data.statistics.sk/api/v2/dataset/pr5001rr/${nutsCode}/all/all?lang=sk&type=json",
+            "nutsCode": "nuts"
+        },
+        {
+            "id": "ekonomikaTabulka2",
+            "url": "https://data.statistics.sk/api/v2/dataset/om7005rr/${nutsCode}/all/IN010147,IN010148,IN010149/SPOLU?lang=sk&type=json",
+            "nutsCode": "nuts"
+        },
+        {
+            "id": "ekonomikaTabulka3",
+            "url": "https://data.statistics.sk/api/v2/dataset/om7005rr/${nutsCode}/all/IN010084/SPOLU,1,2?lang=sk&type=json",
+            "nutsCode": "nuts"
+        },
+        {
+            "id": "ekonomikaTabulka4",
+            "url": "https://data.statistics.sk/api/v2/dataset/om7005rr/${nutsCode}/all/IN010087/SPOLU,1,2?lang=sk&type=json",
+            "nutsCode": "nuts"
+        }
+    ],
+    "pohnohospodarstvo":[
+        {
+            "id": "RpolnoTabulka1",
+            "url": "https://data.statistics.sk/api/v2/dataset/pl5001rr/${nutsCode}/all/U14020,U14100?lang=sk&type=json",
+            "nutsCode": "nuts"
+        },
+        {
+            "id": "RpolnoTabulka2",
+            "url": "https://data.statistics.sk/api/v2/dataset/pl5001rr/${nutsCode}/all/U14110,U14120,U14130,U14140?lang=sk&type=json",
+            "nutsCode": "nuts"
+        },
+        {
+            "id": "RpolnoTabulka3",
+            "url": "https://data.statistics.sk/api/v2/dataset/pl5001rr/${nutsCode}/all/U14020,U14030,U14040,U14050,U14060,U14070,U14080?lang=sk&type=json",
+            "nutsCode": "nuts"
+        }
+    ],
+    "organizacnaStatistika":[
+        {
+            "id": "regionsOrganTabulka1",
+            "url": "https://data.statistics.sk/api/v2/dataset/og3008rr/${nutsCode}/all/PO_SPOLU?lang=sk&type=json",
+            "nutsCode": "nuts"
+        },
+        {
+            "id": "regionsOrganTabulka2",
+            "url": "https://data.statistics.sk/api/v2/dataset/og3008rr/${nutsCode}/all/PO_ZISK,PO_NEZISK?lang=sk&type=json",
+            "nutsCode": "nuts"
+        },
+        {
+            "id": "regionsOrganTabulka3",
+            "url": "https://data.statistics.sk/api/v2/dataset/og3011rr/${nutsCode}/all/FO_SPOLU,ZIVNOST?lang=sk&type=json",
+            "nutsCode": "nuts"
+        }
+    ]
+}
