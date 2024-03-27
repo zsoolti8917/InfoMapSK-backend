@@ -45,34 +45,34 @@
     ],
     "pohnohospodarstvo":[
         {
-            "id": "RpolnoTabulka1",
+            "id": "polnoTabulka1",
             "url": "https://data.statistics.sk/api/v2/dataset/pl5001rr/${nutsCode}/all/U14020,U14100?lang=sk&type=json",
             "nutsCode": "nuts"
         },
         {
-            "id": "RpolnoTabulka2",
+            "id": "polnoTabulka2",
             "url": "https://data.statistics.sk/api/v2/dataset/pl5001rr/${nutsCode}/all/U14110,U14120,U14130,U14140?lang=sk&type=json",
             "nutsCode": "nuts"
         },
         {
-            "id": "RpolnoTabulka3",
+            "id": "polnoTabulka3",
             "url": "https://data.statistics.sk/api/v2/dataset/pl5001rr/${nutsCode}/all/U14020,U14030,U14040,U14050,U14060,U14070,U14080?lang=sk&type=json",
             "nutsCode": "nuts"
         }
     ],
     "organizacnaStatistika":[
         {
-            "id": "regionsOrganTabulka1",
+            "id": "organTabulka1",
             "url": "https://data.statistics.sk/api/v2/dataset/og3008rr/${nutsCode}/all/PO_SPOLU?lang=sk&type=json",
             "nutsCode": "nuts"
         },
         {
-            "id": "regionsOrganTabulka2",
+            "id": "organTabulka2",
             "url": "https://data.statistics.sk/api/v2/dataset/og3008rr/${nutsCode}/all/PO_ZISK,PO_NEZISK?lang=sk&type=json",
             "nutsCode": "nuts"
         },
         {
-            "id": "regionsOrganTabulka3",
+            "id": "organTabulka3",
             "url": "https://data.statistics.sk/api/v2/dataset/og3011rr/${nutsCode}/all/FO_SPOLU,ZIVNOST?lang=sk&type=json",
             "nutsCode": "nuts"
         }
