@@ -3,78 +3,92 @@
         {
             "id": "obyvatelstvoTabulka1",
             "url": "https://data.statistics.sk/api/v2/dataset/om7012rr/${nutsCode}/all/IN010053/all?lang=sk&type=json",
-            "nutsCode": "nuts"
+            "nutsCode": "nuts",
+            "title": "TRVALE BÝVAJÚCE OBYVATEĽSTVO K 31. 12."
         },
         {
             "id": "obyvatelstvoTabulka2",
             "url": "https://data.statistics.sk/api/v2/dataset/om7012rr/${nutsCode}/all/IN010076,IN010078,IN010079,IN010080,IN010082/SPOLU?lang=sk&type=json",
-            "nutsCode": "nuts"
+            "nutsCode": "nuts",
+            "title": "VÝVOJ PRÍRASTKOV OBYVATEĽSTVA (osoby)"
         },
         {
             "id": "obyvatelstvoTabulka3",
             "url": "https://data.statistics.sk/api/v2/dataset/om7010rr/${nutsCode}/all/IN010061,IN010106?lang=sk&type=json",
-            "nutsCode": "nuts"
+            "nutsCode": "nuts",
+            "title": "ŽIVONARODENÍ A ZOMRETÍ (osoby)"
         },
         {
             "id": "obyvatelstvoTabulka4",
             "url": "https://data.statistics.sk/api/v2/dataset/om7010rr/${nutsCode}/all/IN010071,IN010073?lang=sk&type=json",
-            "nutsCode": "nuts"
+            "nutsCode": "nuts",
+            "title": "SOBÁŠE A ROZVODY"
         }
     ],
     "ekonomickaAktivita":[
         {
             "id": "ekonomikaTabulka1",
             "url": "https://data.statistics.sk/api/v2/dataset/pr5001rr/${nutsCode}/all/all?lang=sk&type=json",
-            "nutsCode": "nuts"
+            "nutsCode": "nuts",
+            "title": "UCHÁDZAČI O ZAMESTNANIE K 31. 12. (osoby)"
         },
         {
             "id": "ekonomikaTabulka2",
             "url": "https://data.statistics.sk/api/v2/dataset/om7052rr/${nutsCode}/all/IN010147,IN010148,IN010149/SPOLU?lang=sk&type=json",
-            "nutsCode": "nuts"
+            "nutsCode": "nuts",
+            "title": "EKONOMICKÁ AKTIVITA OBYVATEĽSTVA K 31. 12. (%)"
         },
         {
             "id": "ekonomikaTabulka3",
             "url": "https://data.statistics.sk/api/v2/dataset/om7052rr/${nutsCode}/all/IN010084/all?lang=sk&type=json",
-            "nutsCode": "nuts"
+            "nutsCode": "nuts",
+            "title": "INDEX EKONOMICKÉHO ZAŤAŽENIA (%)"
         },
         {
             "id": "ekonomikaTabulka4",
             "url": "https://data.statistics.sk/api/v2/dataset/om7052rr/${nutsCode}/all/IN010087/all?lang=sk&type=json",
-            "nutsCode": "nuts"
+            "nutsCode": "nuts",
+            "title": "INDEX STARNUTIA (%)"
         }
     ],
     "pohnohospodarstvo":[
         {
             "id": "polnoTabulka1",
-            "url": "https://data.statistics.sk/api/v2/dataset/pl5001rr/${nutsCode}/all/U14020,U14100?lang=sk&type=json",
-            "nutsCode": "nuts"
+            "url": "https://data.statistics.sk/api/v2/dataset/pl5001rr/${nutsCode}/1996,2023/U14020,U14100?lang=sk&type=json",
+            "nutsCode": "nuts",
+            "title": "CELKOVÁ VÝMERA PÔDY (hektáre)"
         },
         {
             "id": "polnoTabulka2",
-            "url": "https://data.statistics.sk/api/v2/dataset/pl5001rr/${nutsCode}/all/U14110,U14120,U14130,U14140?lang=sk&type=json",
-            "nutsCode": "nuts"
+            "url": "https://data.statistics.sk/api/v2/dataset/pl5001rr/${nutsCode}/1996,2023/U14110,U14120,U14130,U14140?lang=sk&type=json",
+            "nutsCode": "nuts",
+            "title": "NEPOĽNOHOSPODÁRSKA PÔDA (hektáre)"
         },
         {
             "id": "polnoTabulka3",
-            "url": "https://data.statistics.sk/api/v2/dataset/pl5001rr/${nutsCode}/all/U14020,U14030,U14040,U14050,U14060,U14070,U14080?lang=sk&type=json",
-            "nutsCode": "nuts"
+            "url": "https://data.statistics.sk/api/v2/dataset/pl5001rr/${nutsCode}/1996,2023/U14030,U14040,U14050,U14060,U14070,U14080?lang=sk&type=json",
+            "nutsCode": "nuts",
+            "title": "POĽNOHOSPODÁRSKA PÔDA (hektáre)"
         }
     ],
     "organizacnaStatistika":[
         {
             "id": "organTabulka1",
             "url": "https://data.statistics.sk/api/v2/dataset/og3008rr/${nutsCode}/all/PO_SPOLU?lang=sk&type=json",
-            "nutsCode": "nuts"
+            "nutsCode": "nuts",
+            "title": "PRÁVNICKÉ OSOBY"
         },
         {
             "id": "organTabulka2",
             "url": "https://data.statistics.sk/api/v2/dataset/og3008rr/${nutsCode}/all/PO_ZISK,PO_NEZISK?lang=sk&type=json",
-            "nutsCode": "nuts"
+            "nutsCode": "nuts",
+            "title": "PODNIKY A NEZISKOVÉ INŠTITÚCIE"
         },
         {
             "id": "organTabulka3",
             "url": "https://data.statistics.sk/api/v2/dataset/og3011rr/${nutsCode}/all/FO_SPOLU,ZIVNOST?lang=sk&type=json",
-            "nutsCode": "nuts"
+            "nutsCode": "nuts",
+            "title": "FYZICKÉ OSOBY A ŽIVNOSTNÍCI"
         }
     ]
 }

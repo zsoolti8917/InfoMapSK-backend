@@ -13,7 +13,6 @@ import fs from 'fs';
 dotenv.config()
 import { promises as fs1 } from 'fs';
 import {Schema} from 'mongoose'
-import mongoose from 'mongoose'
 const app = express();
 const port = 5500;
 import datasetCitiesConfig from './datasetsCitiesConfig.json' assert { type: "json" };
@@ -21,29 +20,30 @@ import datasetDistrictsConfig from './datasetsDistrictsConfig.json' assert { typ
 import datasetRegionsConfig from './datasetsRegionsConfig.json' assert { type: "json" };
 import datasetSlovakiaConfig from './datasetsSlovakiaConfig.json' assert { type: "json" };
 // Middleware
+import mongoose from 'mongoose';
+
+import CacheEntry from './catchEntry.js';
+
 app.use(morgan('dev')); // Logging
 app.use(express.json()); // Parsing JSON bodies
 app.use(cors()); // Enabling CORS
 
-mongoose.connect('mongodb://localhost:27017/InfoMapSK', { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('Successfully connected to MongoDB.'))
-  .catch(err => console.error('Connection error', err));
+const mongoURI = 'mongodb://localhost:27017'; // Replace with your actual connection URI
+mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB connected...'))
+  .catch(err => console.error(err));
 
-  const jsonStatSchema = new Schema({
-    nutsCode: String, // To store the NUTS code associated with the dataset
-    label: String, // The label of the dataset for easy identification
-    update: Date, // The last update date of the dataset
-    data: Schema.Types.Mixed, // The actual JSON-stat data
-    createdAt: {
-      type: Date,
-      default: Date.now
-    },
-    lastUpdated: {
-      type: Date,
-      default: Date.now
-    }
+  mongoose.connection.on('connected', () => {
+    console.log('Mongoose connected to db');
   });
-  const JsonStat = mongoose.model('JsonStat', jsonStatSchema);
+  
+  mongoose.connection.on('error', (err) => {
+    console.log('Mongoose connection error:', err);
+  });
+  
+  mongoose.connection.on('disconnected', () => {
+    console.log('Mongoose connection is disconnected.');
+  });
 
 const transporter = nodemailer.createTransport({
     host: 'smtp.zoho.eu',
@@ -82,57 +82,7 @@ const transporter = nodemailer.createTransport({
     });
   });
 
-// Fetch dimension details
-/*app.get('/dimension-details', async (req, res) => {
-    const { datasetCode, dimensionName } = req.query;
-    if (!datasetCode || !dimensionName) {
-        return res.status(400).send('Both datasetCode and dimensionName are required');
-    }
 
-    const url = `https://data.statistics.sk/api/v2/dimension/${datasetCode}/${dimensionName}?lang=en`;
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        res.json(data);
-    } catch (error) {
-        console.error(`Error fetching dimension details: ${error}`);
-        res.status(500).send(`Error fetching dimension details: ${error}`);
-    }
-});*/
-
-// Process data with Python script
-/*app.post('/process-data', (req, res) => {
-    const { apiUrl } = req.body;
-    if (!apiUrl) {
-        return res.status(400).send('API URL is required');
-    }
-
-    const pythonProcess = spawn('python', ['data_clean.py', apiUrl]);
-
-    let pythonData = "";
-    pythonProcess.stdout.on('data', (data) => {
-        pythonData += data.toString();
-    });
-
-    pythonProcess.stderr.on('data', (data) => {
-        console.error(`stderr: ${data}`);
-    });
-
-    pythonProcess.on('close', (code) => {
-        if (code !== 0) {
-            console.error(`Python script exited with code ${code}`);
-            return res.status(500).send(`Failed to process data with Python script. Exit code: ${code}`);
-        }
-        try {
-            const output = JSON.parse(pythonData);
-            res.json(output);
-        } catch (e) {
-            console.error(`Error parsing Python script output: ${e.message}`);
-            res.status(500).send(`Error parsing Python script output: ${e.message}`);
-        }
-    });
-});
-*/
 app.get('/get-slovakia-geojson', (req, res) => {
     fs.readFile(path.join(__dirname, './geojson/slovakia_corrected.geojson'), 'utf8', (err, data) => {
       if (err) {
@@ -181,16 +131,16 @@ app.get('/api/slovakia/:index/:activeTab', async (req, res) => {
 
 
   // Check if the activeTab exists in datasetRegionsConfig
-  if (!datasetRegionsConfig[activeTab]) {
+  if (!datasetSlovakiaConfig[activeTab]) {
     return res.status(404).send('Category not found');
   }
 
   // Fetch all datasets for the activeTab category
-  const datasets = datasetRegionsConfig[activeTab];
+  const datasets = datasetSlovakiaConfig[activeTab];
   try {
     const responses = await Promise.all(datasets.map(dataset => {
       const url = dataset.url.replace('${nutsCode}', nutsCode);
-      return axios.get(url).then(response => ({ id: dataset.id, data: response.data, nutsCode: "SK0" }));
+      return axios.get(url).then(response => ({ id: dataset.id, data: response.data, nutsCode: "SK0" , title: dataset.title}));
     }));
 
     // Send the fetched data back to the frontend
@@ -228,7 +178,7 @@ app.get('/api/regions/:index/:activeTab', async (req, res) => {
   try {
     const responses = await Promise.all(datasets.map(dataset => {
       const url = dataset.url.replace('${nutsCode}', nutsCode);
-      return axios.get(url).then(response => ({ id: dataset.id, data: response.data, nutsCode: nutsCode }));
+      return axios.get(url).then(response => ({ id: dataset.id, data: response.data, nutsCode: nutsCode, title: dataset.title }));
     }));
 
     // Send the fetched data back to the frontend
@@ -238,44 +188,60 @@ app.get('/api/regions/:index/:activeTab', async (req, res) => {
     return res.status(500).send('Error fetching data');
   }
 });
+
 
 app.get('/api/districts/:index/:activeTab', async (req, res) => {
   const { index, activeTab } = req.params;
+  const layer = 'districts';
+  // First, try to serve the data from cache
+  try {
+    const cachedData = await CacheEntry.findOne({ index, activeTab, layer });
+    if (cachedData) {
+      console.log('Serving data from cache for:', index, activeTab);
+      return res.json(cachedData.data);
+    }
+  } catch (cacheError) {
+    console.error('Cache retrieval error:', cacheError);
+    // You might want to continue despite cache errors, or handle them differently
+  }
 
-  let simplifiedMapping;
+  // Proceed if no cache hit
   try {
     const mappingData = await fs1.readFile('./mapping-json/districts_mapping.json', { encoding: 'utf-8' });
-    simplifiedMapping = JSON.parse(mappingData);
-  } catch (error) {
-    console.error('Error reading mapping file:', error);
-    return res.status(500).send('Internal server error');
-  }
+    const simplifiedMapping = JSON.parse(mappingData);
 
-  const nutsCode = simplifiedMapping[index];
-  if (!nutsCode) {
-    return res.status(400).send('Invalid index provided');
-  }
+    const nutsCode = simplifiedMapping[index];
+    if (!nutsCode) {
+      return res.status(400).send('Invalid index provided');
+    }
 
-  // Check if the activeTab exists in datasetDistrictsConfig
-  if (!datasetDistrictsConfig[activeTab]) {
-    return res.status(404).send('Category not found');
-  }
+    if (!datasetDistrictsConfig[activeTab]) {
+      return res.status(404).send('Category not found');
+    }
 
-  // Fetch all datasets for the activeTab category
-  const datasets = datasetDistrictsConfig[activeTab];
-  try {
+    const datasets = datasetDistrictsConfig[activeTab];
     const responses = await Promise.all(datasets.map(dataset => {
       const url = dataset.url.replace('${nutsCode}', nutsCode);
-      return axios.get(url).then(response => ({ id: dataset.id, data: response.data, nutsCode: nutsCode }));
+      return axios.get(url).then(response => ({ id: dataset.id, data: response.data, nutsCode: nutsCode, title: dataset.title }));
     }));
 
-    // Send the fetched data back to the frontend
+    // Cache the newly fetched data
+    const newCacheData = new CacheEntry({
+      index,
+      activeTab,
+      layer,
+      data: responses
+    });
+    await newCacheData.save();
+
+    // Then send the fetched data back to the frontend
     res.json(responses);
   } catch (error) {
-    console.error('Error fetching data from external API:', error);
-    return res.status(500).send('Error fetching data');
+    console.error('Error:', error);
+    return res.status(500).send('Internal server error');
   }
 });
+
 
 
 
@@ -306,7 +272,7 @@ app.get('/api/cities/:index/:activeTab', async (req, res) => {
   try {
     const responses = await Promise.all(datasets.map(dataset => {
       const url = dataset.url.replace('${nutsCode}', nutsCode);
-      return axios.get(url).then(response => ({ id: dataset.id, data: response.data, nutsCode: nutsCode }));
+      return axios.get(url).then(response => ({ id: dataset.id, data: response.data, nutsCode: nutsCode , title: dataset.title}));
     }));
 
     // Send the fetched data back to the frontend
@@ -318,7 +284,64 @@ app.get('/api/cities/:index/:activeTab', async (req, res) => {
 });
 
 
+async function loadData(fileName) {
+  try {
+      const filePath = path.join(__dirname, 'geojson', fileName);
+      const data = await fs1.readFile(filePath, 'utf8');
+      return JSON.parse(data);
+  } catch (error) {
+      console.error(`Error loading data from ${fileName}:`, error);
+      throw error; // Ensuring error is propagated for handling in the calling function
+  }
+}
 
+async function aggregateData() {
+  try {
+      const [citiesData, districtsData, regionsData] = await Promise.all([
+          loadData('updated_corrected_cities.geojson'),
+          loadData('updated_districts.geojson'),
+          loadData('corrected_regions.geojson'),
+      ]);
+      const cities = citiesData.features; // Replace 'features' with the actual property name if different
+      const districts = districtsData.features; // Replace 'features' with the actual property name if different
+      const regions = regionsData.features; 
+      // Transform and aggregate data
+      const transformedData = [
+        ...cities.filter(city => city.properties.IDN5).map(city => ({
+              name: city.properties.name,
+              type: 'city',
+              IDN: city.properties.IDN5,
+              SKtype: 'Osada'
+          })),
+          ...districts.filter(district => district.properties.IDN4).map(district => ({
+              name: district.properties.NM3,
+              type: 'district', // Manually setting the type
+              IDN: district.properties.IDN4,
+              SKtype: 'Okres'
+          })),
+          ...regions.filter(region => region.properties.IDN4).map(region => ({
+              name: region.properties.NM4,
+              type: 'region', // Manually setting the type
+              IDN: region.properties.IDN4,
+              SKtype: 'Kraj'
+          })),
+      ];
+
+      return transformedData;
+  } catch (error) {
+      console.error("Error aggregating data:", error);
+      throw error; // Rethrowing error for handling in the endpoint
+  }
+}
+
+app.get('/list/places', async (req, res) => {
+  try {
+      const aggregatedData = await aggregateData();
+      res.json(aggregatedData);
+  } catch (error) {
+      res.status(500).send("An error occurred while aggregating place data.");
+  }
+});
 
 
 // Start the server
