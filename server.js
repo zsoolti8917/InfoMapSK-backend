@@ -31,7 +31,7 @@ app.use(cors({
 })); // Enabling CORS
 
 const mongoURI = process.env.mongoURI; // Replace with your actual connection URI
-mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true, serverSelectionTimeoutMS: 20000 })
   .then(() => console.log('MongoDB connected...'))
   .catch(err => console.error(err));
 
