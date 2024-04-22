@@ -26,7 +26,9 @@ import CacheEntry from './catchEntry.js';
 
 app.use(morgan('dev')); // Logging
 app.use(express.json()); // Parsing JSON bodies
-app.use(cors()); // Enabling CORS
+app.use(cors({
+  origin: 'https://infomap.sk/',
+})); // Enabling CORS
 
 const mongoURI = process.env.mongoURI; // Replace with your actual connection URI
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
