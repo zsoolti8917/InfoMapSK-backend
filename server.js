@@ -14,7 +14,7 @@ dotenv.config()
 import { promises as fs1 } from 'fs';
 import {Schema} from 'mongoose'
 const app = express();
-const port = process.env.port || 3000;
+const PORT = process.env.PORT || 5500;
 import datasetCitiesConfig from './datasetsCitiesConfig.json' assert { type: "json" };
 import datasetDistrictsConfig from './datasetsDistrictsConfig.json' assert { type: "json" };
 import datasetRegionsConfig from './datasetsRegionsConfig.json' assert { type: "json" };
@@ -345,6 +345,6 @@ app.get('/list/places', async (req, res) => {
 
 
 // Start the server
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+app.listen(PORT, () => {
+    console.log(`Server is running on PORT ${PORT}`);
 });
