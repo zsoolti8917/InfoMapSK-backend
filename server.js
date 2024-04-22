@@ -14,7 +14,7 @@ dotenv.config()
 import { promises as fs1 } from 'fs';
 import {Schema} from 'mongoose'
 const app = express();
-const port = 5500;
+const port = process.env.port || 3000;
 import datasetCitiesConfig from './datasetsCitiesConfig.json' assert { type: "json" };
 import datasetDistrictsConfig from './datasetsDistrictsConfig.json' assert { type: "json" };
 import datasetRegionsConfig from './datasetsRegionsConfig.json' assert { type: "json" };
@@ -28,7 +28,7 @@ app.use(morgan('dev')); // Logging
 app.use(express.json()); // Parsing JSON bodies
 app.use(cors()); // Enabling CORS
 
-const mongoURI = 'mongodb://localhost:27017'; // Replace with your actual connection URI
+const mongoURI = process.env.mongoURI; // Replace with your actual connection URI
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected...'))
   .catch(err => console.error(err));
